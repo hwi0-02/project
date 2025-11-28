@@ -122,10 +122,17 @@ class PetStateModel extends HiveObject {
   /// 레벨업 필요 경험치: level * 100
   void addExperience(int exp) {
     experience += exp;
-    final requiredExp = level * 100;
+    if (experience < 0) {
+      experience = 0;
+    }
 
-    while (experience >= requiredExp) {
-      experience -= requiredExp;
+    // 비정상 데이터로 레벨이 1 미만일 때 무한 루프 방지
+    if (level < 1) {
+      level = 1;
+    }
+
+    while (experience >= level * 100) {
+      experience -= level * 100;
       level++;
     }
   }

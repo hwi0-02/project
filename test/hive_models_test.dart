@@ -57,11 +57,39 @@ void main() {
 
     test('addExperience()가 레벨업 처리', () {
       final pet = PetStateModel(experience: 95);
-      
+
       pet.addExperience(10);
-      
+
       expect(pet.level, 2); // 레벨업
       expect(pet.experience, 5); // 100 - 95 + 10 = 15 -> 레벨업 후 5
+    });
+
+    test('addExperience()가 누적 경험치에 따라 반복 레벨업 처리', () {
+      final pet = PetStateModel(experience: 0);
+
+      // 100(1→2), 200(2→3) 요구치를 만족하고 50 남음
+      pet.addExperience(350);
+
+      expect(pet.level, 3);
+      expect(pet.experience, 50);
+    });
+
+    test('addExperience()가 레벨이 1 미만일 때 안전하게 복구', () {
+      final pet = PetStateModel(level: 0, experience: 50);
+
+      pet.addExperience(10);
+
+      expect(pet.level, 1);
+      expect(pet.experience, 60);
+    });
+
+    test('addExperience()가 음수 경험치 입력 시 0 아래로 떨어지지 않음', () {
+      final pet = PetStateModel(experience: 20);
+
+      pet.addExperience(-50);
+
+      expect(pet.experience, 0);
+      expect(pet.level, 1);
     });
 
     test('isHungry가 30 이하일 때 true', () {
