@@ -5,12 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'src/constants/constants.dart';
 import 'src/screens/screens.dart';
 import 'src/services/services.dart';
+import 'src/providers/providers.dart';
 
-/// 글로벌 키 (딥링크 처리용)
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-/// 위젯 동기화 서비스 인스턴스
-final widgetSyncService = WidgetSyncService();
+/// 글로벌 NavigatorKey Provider
+/// 딥링크 처리를 위해 필요하지만, Provider로 관리
+final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) {
+  return GlobalKey<NavigatorState>();
+});
 
 /// 앱 진입점
 void main() async {
@@ -18,9 +19,6 @@ void main() async {
   
   // Hive 데이터베이스 초기화
   await HiveService.init();
-  
-  // 홈 위젯 초기화
-  await widgetSyncService.initialize();
   
   // 온보딩 완료 여부 확인
   final prefs = await SharedPreferences.getInstance();
@@ -40,7 +38,7 @@ void main() async {
 }
 
 /// 앱 위젯
-class FetchPetApp extends StatefulWidget {
+class FetchPetApp extends ConsumerStatefulWidget {
   final Uri? initialUri;
   final bool isOnboardingComplete;
   
@@ -51,13 +49,19 @@ class FetchPetApp extends StatefulWidget {
   });
 
   @override
-  State<FetchPetApp> createState() => _FetchPetAppState();
+  ConsumerState<FetchPetApp> createState() => _FetchPetAppState();
 }
 
-class _FetchPetAppState extends State<FetchPetApp> {
+class _FetchPetAppState extends ConsumerState<FetchPetApp> {
   @override
   void initState() {
     super.initState();
+    
+    // 위젯 동기화 서비스 초기화
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final widgetSyncService = ref.read(widgetSyncServiceProvider);
+      await widgetSyncService.initialize();
+    });
     
     // 위젯 클릭 이벤트 리스너
     HomeWidget.widgetClicked.listen(_handleWidgetClick);
@@ -81,6 +85,7 @@ class _FetchPetAppState extends State<FetchPetApp> {
     // MainScreen에서 widgetSyncService.setDrawActionCallback / setCompleteActionCallback으로 등록됨
     
     // 위젯에서 앱을 열 때는 항상 MainScreen으로 이동
+    final navigatorKey = ref.read(navigatorKeyProvider);
     if (navigatorKey.currentState != null) {
       navigatorKey.currentState!.pushNamedAndRemoveUntil('/main', (route) => false);
     }
@@ -88,6 +93,8 @@ class _FetchPetAppState extends State<FetchPetApp> {
 
   @override
   Widget build(BuildContext context) {
+    final navigatorKey = ref.watch(navigatorKeyProvider);
+    
     return MaterialApp(
       title: AppStrings.appName,
       navigatorKey: navigatorKey,

@@ -416,10 +416,7 @@ class _RivePetWidgetState extends ConsumerState<RivePetWidget>
   }
 }
 
-/// Rive 펫 컨트롤러 Provider
-final rivePetControllerProvider = Provider<RivePetController>((ref) {
-  return RivePetService.instance.controller;
-});
+// rivePetControllerProvider는 providers.dart에서 정의됨
 
 /// 간단한 펫 미리보기 위젯 (상점용)
 class PetPreviewWidget extends StatelessWidget {

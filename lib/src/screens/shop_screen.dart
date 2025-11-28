@@ -117,7 +117,7 @@ class _GachaTabState extends ConsumerState<_GachaTab> {
     // 가챠 실행
     final gachaService = ref.read(gachaServiceProvider);
     final history = ref.read(gachaHistoryProvider);
-    final result = gachaService.pull(history);
+    final result = await gachaService.pull(history);
 
     if (result != null) {
       // 결과 저장
@@ -126,7 +126,7 @@ class _GachaTabState extends ConsumerState<_GachaTab> {
       // 인벤토리에 추가
       await ref.read(inventoryProvider.notifier).addItem(result.itemId, 'gacha');
 
-      final item = gachaService.getItemById(result.itemId);
+      final item = await gachaService.getItemById(result.itemId);
 
       // 애니메이션 딜레이
       await Future.delayed(const Duration(milliseconds: 1500));
@@ -542,13 +542,19 @@ class _InventoryTab extends ConsumerWidget {
       itemCount: inventory.items.length,
       itemBuilder: (context, index) {
         final inventoryItem = inventory.items[index];
-        final shopItem = gachaService.getItemById(inventoryItem.itemId);
         
-        if (shopItem == null) return const SizedBox();
-        
-        return _InventoryItemCard(
-          item: shopItem,
-          quantity: inventoryItem.quantity,
+        return FutureBuilder<ShopItem?>(
+          future: gachaService.getItemById(inventoryItem.itemId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data == null) {
+              return const SizedBox();
+            }
+            
+            return _InventoryItemCard(
+              item: snapshot.data!,
+              quantity: inventoryItem.quantity,
+            );
+          },
         );
       },
     );

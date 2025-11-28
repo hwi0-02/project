@@ -9,7 +9,6 @@ import '../repositories/repositories.dart';
 import '../services/services.dart';
 import '../widgets/widgets.dart';
 import '../providers/providers.dart';
-import '../../main.dart' show widgetSyncService;
 
 /// 메인 화면
 class MainScreen extends ConsumerStatefulWidget {
@@ -20,11 +19,12 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  late final DeckRepository _deckRepository;
+  late final IDeckRepository _deckRepository;
   final PetRepository _petRepository = PetRepository();
   final ResetService _resetService = ResetService();
   final AdService _adService = AdService();
   late final PurchaseRepository _purchaseRepository;
+  late final WidgetSyncService _widgetSyncService;
   StreamSubscription<bool>? _premiumSubscription;
 
   DeckCategory _selectedCategory = DeckCategory.food;
@@ -39,16 +39,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     super.initState();
     _deckRepository = ref.read(deckRepositoryProvider);
     _purchaseRepository = ref.read(purchaseRepositoryProvider);
+    _widgetSyncService = ref.read(widgetSyncServiceProvider);
     _initializeApp();
     _registerWidgetCallbacks();
   }
 
   /// 위젯 액션 콜백 등록
   void _registerWidgetCallbacks() {
-    widgetSyncService.setDrawActionCallback(() async {
+    _widgetSyncService.setDrawActionCallback(() async {
       await _onDrawCategory(DeckCategory.food);
     });
-    widgetSyncService.setCompleteActionCallback(() async {
+    _widgetSyncService.setCompleteActionCallback(() async {
       // 미션 다이얼로그 표시
       _showMissionDialog();
     });
@@ -123,7 +124,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       message = AppStrings.widgetWaiting;
     }
     
-    await widgetSyncService.updateAllWidgetData(
+    await _widgetSyncService.updateAllWidgetData(
       state: widgetState,
       message: message,
       result: _currentResult,
@@ -148,8 +149,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     });
 
     // 위젯에 로딩 상태 전달
-    await widgetSyncService.updateWidgetState(FetchPetWidgetState.loading);
-    await widgetSyncService.updateWidgetMessage(AppStrings.widgetLoading);
+    await _widgetSyncService.updateWidgetState(FetchPetWidgetState.loading);
+    await _widgetSyncService.updateWidgetMessage(AppStrings.widgetLoading);
 
     // 로딩 딜레이 (UX)
     await Future.delayed(const Duration(milliseconds: 800));

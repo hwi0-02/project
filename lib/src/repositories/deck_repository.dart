@@ -4,12 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/storage_keys.dart';
 import '../models/deck_model.dart';
 import '../services/hive_service.dart';
+import 'i_deck_repository.dart';
 
-/// 덱 데이터 리포지토리
+/// 덱 데이터 리포지토리 구현체
 /// 
 /// JSON 데이터 로드 및 SharedPreferences 상태 관리
 /// 설정에 따라 서브카테고리별 데이터 로드
-class DeckRepository {
+class DeckRepository implements IDeckRepository {
   // 싱글톤 인스턴스
   static final DeckRepository _instance = DeckRepository._internal();
   static DeckRepository get instance => _instance;
@@ -31,6 +32,7 @@ class DeckRepository {
   List<VocabularyItem> _currentVocabularyDeck = [];
 
   /// 리포지토리 초기화
+  @override
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -45,11 +47,13 @@ class DeckRepository {
   }
 
   /// 카테고리별 덱 가져오기
+  @override
   Deck getDeck(DeckCategory category) {
     return _decks[category]!;
   }
 
   /// 카테고리에서 아이템 뽑기
+  @override
   Future<String> draw(DeckCategory category) async {
     if (category == DeckCategory.vocabulary) {
       return _drawVocabularyString();
@@ -62,6 +66,7 @@ class DeckRepository {
   }
 
   /// 영단어 뽑기 (VocabularyItem 반환)
+  @override
   Future<VocabularyItem> drawVocabulary() async {
     if (_currentVocabularyDeck.isEmpty) {
       _refillVocabularyDeck();
@@ -95,6 +100,7 @@ class DeckRepository {
   }
 
   /// 덱 리셋 (새로 섞기)
+  @override
   Future<void> resetDeck(DeckCategory category) async {
     if (category == DeckCategory.vocabulary) {
       _refillVocabularyDeck();
@@ -106,6 +112,7 @@ class DeckRepository {
   }
 
   /// 모든 덱 리셋
+  @override
   Future<void> resetAllDecks() async {
     for (final category in DeckCategory.values) {
       await resetDeck(category);
@@ -113,6 +120,7 @@ class DeckRepository {
   }
 
   /// 설정 변경 시 덱 재로드
+  @override
   Future<void> reloadDecksWithSettings() async {
     // 초기화가 안 되어 있으면 initialize만 호출
     if (!_isInitialized) {

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "acc_ribbon",
+    "name": "리본",
+    "description": "귀여운 리본",
+    "type": "accessory",
+    "price": 100,
+    "rarity": "common",
+    "assetPath": "assets/items/ribbon.png"
+  },
+  {
+    "id": "acc_hat",
+    "name": "모자",
+    "description": "멋진 모자",
+    "type": "accessory",
+    "price": 150,
+    "rarity": "common",
+    "assetPath": "assets/items/hat.png"
+  },
+  {
+    "id": "acc_glasses",
+    "name": "안경",
+    "description": "지적인 안경",
+    "type": "accessory",
+    "price": 200,
+    "rarity": "rare",
+    "assetPath": "assets/items/glasses.png"
+  },
+  {
+    "id": "acc_crown",
+    "name": "왕관",
+    "description": "화려한 왕관",
+    "type": "accessory",
+    "price": 500,
+    "rarity": "epic",
+    "assetPath": "assets/items/crown.png"
+  },
+  {
+    "id": "acc_wings",
+    "name": "천사 날개",
+    "description": "신비로운 날개",
+    "type": "accessory",
+    "price": 1000,
+    "rarity": "legendary",
+    "assetPath": "assets/items/wings.png"
+  },
+  {
+    "id": "bg_sky",
+    "name": "하늘 배경",
+    "description": "맑은 하늘",
+    "type": "background",
+    "price": 100,
+    "rarity": "common",
+    "assetPath": "assets/backgrounds/sky.png"
+  },
+  {
+    "id": "bg_forest",
+    "name": "숲 배경",
+    "description": "푸른 숲",
+    "type": "background",
+    "price": 150,
+    "rarity": "common",
+    "assetPath": "assets/backgrounds/forest.png"
+  },
+  {
+    "id": "bg_beach",
+    "name": "해변 배경",
+    "description": "시원한 해변",
+    "type": "background",
+    "price": 200,
+    "rarity": "rare",
+    "assetPath": "assets/backgrounds/beach.png"
+  },
+  {
+    "id": "bg_space",
+    "name": "우주 배경",
+    "description": "신비로운 우주",
+    "type": "background",
+    "price": 500,
+    "rarity": "epic",
+    "assetPath": "assets/backgrounds/space.png"
+  },
+  {
+    "id": "bg_rainbow",
+    "name": "무지개 배경",
+    "description": "환상의 무지개",
+    "type": "background",
+    "price": 1000,
+    "rarity": "legendary",
+    "assetPath": "assets/backgrounds/rainbow.png"
+  },
+  {
+    "id": "fx_sparkle",
+    "name": "반짝이 이펙트",
+    "description": "반짝반짝",
+    "type": "effect",
+    "price": 100,
+    "rarity": "common",
+    "assetPath": "assets/effects/sparkle.riv"
+  },
+  {
+    "id": "fx_hearts",
+    "name": "하트 이펙트",
+    "description": "사랑의 하트",
+    "type": "effect",
+    "price": 150,
+    "rarity": "common",
+    "assetPath": "assets/effects/hearts.riv"
+  },
+  {
+    "id": "fx_stars",
+    "name": "별 이펙트",
+    "description": "빛나는 별",
+    "type": "effect",
+    "price": 200,
+    "rarity": "rare",
+    "assetPath": "assets/effects/stars.riv"
+  },
+  {
+    "id": "fx_fire",
+    "name": "불꽃 이펙트",
+    "description": "타오르는 불꽃",
+    "type": "effect",
+    "price": 500,
+    "rarity": "epic",
+    "assetPath": "assets/effects/fire.riv"
+  },
+  {
+    "id": "fx_aurora",
+    "name": "오로라 이펙트",
+    "description": "신비로운 오로라",
+    "type": "effect",
+    "price": 1000,
+    "rarity": "legendary",
+    "assetPath": "assets/effects/aurora.riv"
+  }
+]

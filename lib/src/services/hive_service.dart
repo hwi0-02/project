@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/hive/hive_models.dart';
+import 'hive_adapter_registry.dart';
 
 /// Hive 데이터베이스 서비스
 /// 기획서2.md 기반: 로컬 데이터 영속화 담당
@@ -13,6 +14,47 @@ class HiveService {
   static const String settingsBoxName = 'settings';
 
   static bool _initialized = false;
+  static bool _adaptersSetup = false;
+
+  /// 어댑터 레지스트리 설정 (최초 1회)
+  static void _setupAdapterRegistry() {
+    if (_adaptersSetup) return;
+    
+    // 각 모델의 어댑터를 레지스트리에 등록
+    // OCP 원칙: 새 모델 추가 시 여기에 등록만 추가하면 됨
+    final adapters = <(int, dynamic)>[
+      (0, PetStateModelAdapter()),
+      (1, UserWalletAdapter()),
+      (2, TransactionTypeAdapter()),
+      (3, CoinTransactionAdapter()),
+      (4, ShopItemTypeAdapter()),
+      (5, ItemRarityAdapter()),
+      (6, ShopItemAdapter()),
+      (7, InventoryItemAdapter()),
+      (8, UserInventoryAdapter()),
+      (9, DeckCategoryTypeAdapter()),
+      (10, DeckDataAdapter()),
+      (11, GachaResultAdapter()),
+      (12, GachaHistoryAdapter()),
+      (13, AchievementTypeAdapter()),
+      (14, AchievementAdapter()),
+      (15, UserAchievementAdapter()),
+      (16, BadgeAdapter()),
+      (17, UserAchievementDataAdapter()),
+      (18, FoodSubCategoryAdapter()),
+      (19, ExerciseSubCategoryAdapter()),
+      (20, VocabularyLevelAdapter()),
+      (21, UserSettingsAdapter()),
+    ];
+    
+    for (final (typeId, adapter) in adapters) {
+      HiveAdapterRegistry.add(
+        SimpleAdapterRegistration(typeId: typeId, adapter: adapter),
+      );
+    }
+    
+    _adaptersSetup = true;
+  }
 
   /// Hive 초기화
   static Future<void> init() async {
@@ -20,126 +62,14 @@ class HiveService {
 
     await Hive.initFlutter();
 
-    // 어댑터 등록
-    _registerAdapters();
+    // 어댑터 레지스트리 설정 및 등록
+    _setupAdapterRegistry();
+    HiveAdapterRegistry.registerAll();
 
     // Box 열기
     await _openBoxes();
 
     _initialized = true;
-  }
-
-  /// 어댑터 등록
-  static void _registerAdapters() {
-    // Pet State (typeId: 0)
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(PetStateModelAdapter());
-    }
-
-    // User Wallet (typeId: 1)
-    if (!Hive.isAdapterRegistered(1)) {
-      Hive.registerAdapter(UserWalletAdapter());
-    }
-
-    // Transaction Type (typeId: 2)
-    if (!Hive.isAdapterRegistered(2)) {
-      Hive.registerAdapter(TransactionTypeAdapter());
-    }
-
-    // Coin Transaction (typeId: 3)
-    if (!Hive.isAdapterRegistered(3)) {
-      Hive.registerAdapter(CoinTransactionAdapter());
-    }
-
-    // Shop Item Type (typeId: 4)
-    if (!Hive.isAdapterRegistered(4)) {
-      Hive.registerAdapter(ShopItemTypeAdapter());
-    }
-
-    // Item Rarity (typeId: 5)
-    if (!Hive.isAdapterRegistered(5)) {
-      Hive.registerAdapter(ItemRarityAdapter());
-    }
-
-    // Shop Item (typeId: 6)
-    if (!Hive.isAdapterRegistered(6)) {
-      Hive.registerAdapter(ShopItemAdapter());
-    }
-
-    // Inventory Item (typeId: 7)
-    if (!Hive.isAdapterRegistered(7)) {
-      Hive.registerAdapter(InventoryItemAdapter());
-    }
-
-    // User Inventory (typeId: 8)
-    if (!Hive.isAdapterRegistered(8)) {
-      Hive.registerAdapter(UserInventoryAdapter());
-    }
-
-    // Deck Category Type (typeId: 9)
-    if (!Hive.isAdapterRegistered(9)) {
-      Hive.registerAdapter(DeckCategoryTypeAdapter());
-    }
-
-    // Deck Data (typeId: 10)
-    if (!Hive.isAdapterRegistered(10)) {
-      Hive.registerAdapter(DeckDataAdapter());
-    }
-
-    // Gacha Result (typeId: 11)
-    if (!Hive.isAdapterRegistered(11)) {
-      Hive.registerAdapter(GachaResultAdapter());
-    }
-
-    // Gacha History (typeId: 12)
-    if (!Hive.isAdapterRegistered(12)) {
-      Hive.registerAdapter(GachaHistoryAdapter());
-    }
-
-    // Achievement Type (typeId: 13)
-    if (!Hive.isAdapterRegistered(13)) {
-      Hive.registerAdapter(AchievementTypeAdapter());
-    }
-
-    // Achievement (typeId: 14)
-    if (!Hive.isAdapterRegistered(14)) {
-      Hive.registerAdapter(AchievementAdapter());
-    }
-
-    // User Achievement (typeId: 15)
-    if (!Hive.isAdapterRegistered(15)) {
-      Hive.registerAdapter(UserAchievementAdapter());
-    }
-
-    // Badge (typeId: 16)
-    if (!Hive.isAdapterRegistered(16)) {
-      Hive.registerAdapter(BadgeAdapter());
-    }
-
-    // User Achievement Data (typeId: 17)
-    if (!Hive.isAdapterRegistered(17)) {
-      Hive.registerAdapter(UserAchievementDataAdapter());
-    }
-
-    // Food SubCategory (typeId: 18)
-    if (!Hive.isAdapterRegistered(18)) {
-      Hive.registerAdapter(FoodSubCategoryAdapter());
-    }
-
-    // Exercise SubCategory (typeId: 19)
-    if (!Hive.isAdapterRegistered(19)) {
-      Hive.registerAdapter(ExerciseSubCategoryAdapter());
-    }
-
-    // Vocabulary Level (typeId: 20)
-    if (!Hive.isAdapterRegistered(20)) {
-      Hive.registerAdapter(VocabularyLevelAdapter());
-    }
-
-    // User Settings (typeId: 21)
-    if (!Hive.isAdapterRegistered(21)) {
-      Hive.registerAdapter(UserSettingsAdapter());
-    }
   }
 
   /// Box 열기
