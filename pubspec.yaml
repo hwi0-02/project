@@ -1,0 +1,88 @@
+name: fetch_pet_widget
+description: "뽑기펫: 오늘뭐먹 위젯 - 귀여운 펫이 결정을 물어다 주는 앱"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  
+  # Local Storage (Hive - 빠르고 가벼운 NoSQL)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # Legacy (마이그레이션용)
+  shared_preferences: ^2.2.3
+  
+  # IAP (RevenueCat)
+  purchases_flutter: ^8.9.0
+  
+  # Ads (AdMob)
+  google_mobile_ads: ^5.2.0
+  
+  # Home Screen Widget
+  home_widget: ^0.7.0
+  
+  # Animation (Rive)
+  rive: ^0.13.0
+  
+  # Haptic Feedback
+  vibration: ^2.0.0
+  
+  # Audio
+  audioplayers: ^6.0.0
+  
+  # Utilities
+  intl: ^0.19.0
+  path_provider: ^2.1.4
+  uuid: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/
+    - assets/images/
+    - assets/rive/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package

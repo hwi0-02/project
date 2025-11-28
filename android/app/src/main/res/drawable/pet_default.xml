@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="80dp"
+    android:viewportWidth="80"
+    android:viewportHeight="80">
+    <!-- 기본 펫 - 원형 배경 -->
+    <path
+        android:fillColor="#FFB84D"
+        android:pathData="M40,40m-35,0a35,35 0,1 1,70 0a35,35 0,1 1,-70 0" />
+    <!-- 눈 (왼쪽) -->
+    <path
+        android:fillColor="#2D2D2D"
+        android:pathData="M28,35m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+    <!-- 눈 (오른쪽) -->
+    <path
+        android:fillColor="#2D2D2D"
+        android:pathData="M52,35m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+    <!-- 코 -->
+    <path
+        android:fillColor="#2D2D2D"
+        android:pathData="M40,45m-5,0a5,3 0,1 1,10 0a5,3 0,1 1,-10 0" />
+    <!-- 입 -->
+    <path
+        android:strokeColor="#2D2D2D"
+        android:strokeWidth="2"
+        android:pathData="M32,52 Q40,58 48,52"
+        android:fillColor="#00000000" />
+</vector>
