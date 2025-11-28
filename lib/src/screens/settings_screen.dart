@@ -98,8 +98,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   /// 설정 변경 후 덱 리로드
   Future<void> _onSettingChanged() async {
+    final settings = ref.read(userSettingsProvider);
     final deckRepo = ref.read(deckRepositoryProvider);
-    await deckRepo.reloadDecksWithSettings();
+    await deckRepo.reloadDecksWithSettings(settings);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

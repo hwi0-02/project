@@ -1,6 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/hive/hive_models.dart';
-import 'hive_adapter_registry.dart';
 
 /// Hive 데이터베이스 서비스
 /// 기획서2.md 기반: 로컬 데이터 영속화 담당
@@ -20,37 +19,73 @@ class HiveService {
   static void _setupAdapterRegistry() {
     if (_adaptersSetup) return;
     
-    // 각 모델의 어댑터를 레지스트리에 등록
-    // OCP 원칙: 새 모델 추가 시 여기에 등록만 추가하면 됨
-    final adapters = <(int, dynamic)>[
-      (0, PetStateModelAdapter()),
-      (1, UserWalletAdapter()),
-      (2, TransactionTypeAdapter()),
-      (3, CoinTransactionAdapter()),
-      (4, ShopItemTypeAdapter()),
-      (5, ItemRarityAdapter()),
-      (6, ShopItemAdapter()),
-      (7, InventoryItemAdapter()),
-      (8, UserInventoryAdapter()),
-      (9, DeckCategoryTypeAdapter()),
-      (10, DeckDataAdapter()),
-      (11, GachaResultAdapter()),
-      (12, GachaHistoryAdapter()),
-      (13, AchievementTypeAdapter()),
-      (14, AchievementAdapter()),
-      (15, UserAchievementAdapter()),
-      (16, BadgeAdapter()),
-      (17, UserAchievementDataAdapter()),
-      (18, FoodSubCategoryAdapter()),
-      (19, ExerciseSubCategoryAdapter()),
-      (20, VocabularyLevelAdapter()),
-      (21, UserSettingsAdapter()),
-    ];
-    
-    for (final (typeId, adapter) in adapters) {
-      HiveAdapterRegistry.add(
-        SimpleAdapterRegistration(typeId: typeId, adapter: adapter),
-      );
+    // 각 모델의 어댑터를 타입 명시하여 직접 등록
+    // 타입을 명시하지 않으면 Hive에서 올바른 어댑터를 찾지 못함
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter<PetStateModel>(PetStateModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter<UserWallet>(UserWalletAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter<TransactionType>(TransactionTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter<CoinTransaction>(CoinTransactionAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter<ShopItemType>(ShopItemTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter<ItemRarity>(ItemRarityAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter<ShopItem>(ShopItemAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter<InventoryItem>(InventoryItemAdapter());
+    }
+    if (!Hive.isAdapterRegistered(8)) {
+      Hive.registerAdapter<UserInventory>(UserInventoryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(9)) {
+      Hive.registerAdapter<DeckCategoryType>(DeckCategoryTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter<DeckData>(DeckDataAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter<GachaResult>(GachaResultAdapter());
+    }
+    if (!Hive.isAdapterRegistered(12)) {
+      Hive.registerAdapter<GachaHistory>(GachaHistoryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(13)) {
+      Hive.registerAdapter<AchievementType>(AchievementTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(14)) {
+      Hive.registerAdapter<Achievement>(AchievementAdapter());
+    }
+    if (!Hive.isAdapterRegistered(15)) {
+      Hive.registerAdapter<UserAchievement>(UserAchievementAdapter());
+    }
+    if (!Hive.isAdapterRegistered(16)) {
+      Hive.registerAdapter<Badge>(BadgeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(17)) {
+      Hive.registerAdapter<UserAchievementData>(UserAchievementDataAdapter());
+    }
+    if (!Hive.isAdapterRegistered(18)) {
+      Hive.registerAdapter<FoodSubCategory>(FoodSubCategoryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(19)) {
+      Hive.registerAdapter<ExerciseSubCategory>(ExerciseSubCategoryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive.registerAdapter<VocabularyLevel>(VocabularyLevelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(21)) {
+      Hive.registerAdapter<UserSettings>(UserSettingsAdapter());
     }
     
     _adaptersSetup = true;
@@ -62,9 +97,8 @@ class HiveService {
 
     await Hive.initFlutter();
 
-    // 어댑터 레지스트리 설정 및 등록
+    // 어댑터 등록
     _setupAdapterRegistry();
-    HiveAdapterRegistry.registerAll();
 
     // Box 열기
     await _openBoxes();

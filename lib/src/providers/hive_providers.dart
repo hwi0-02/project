@@ -20,10 +20,29 @@ class PetStateNotifier extends StateNotifier<PetStateModel> {
     _save();
   }
 
-  /// 상태 저장
+  /// 상태 저장 및 UI 갱신
   Future<void> _save() async {
     await HiveService.savePetState(state);
-    state = HiveService.getPetState(); // 새로고침
+    // StateNotifier가 변경을 감지하도록 새 인스턴스 생성
+    state = _cloneState(state);
+  }
+  
+  /// 상태 복제 (Hive 캐시 우회를 위해)
+  PetStateModel _cloneState(PetStateModel source) {
+    return PetStateModel(
+      hungerPoint: source.hungerPoint,
+      moodPoint: source.moodPoint,
+      lastAccessTime: source.lastAccessTime,
+      level: source.level,
+      experience: source.experience,
+      streakCount: source.streakCount,
+      equippedItems: List.from(source.equippedItems),
+      todayPetCount: source.todayPetCount,
+      lastPetDate: source.lastPetDate,
+      lastStreakDate: source.lastStreakDate,
+      petName: source.petName,
+      petType: source.petType,
+    );
   }
 
   /// 밥 주기 (뽑기 완료 시)
@@ -81,10 +100,22 @@ final walletProvider = StateNotifierProvider<WalletNotifier, UserWallet>((ref) {
 class WalletNotifier extends StateNotifier<UserWallet> {
   WalletNotifier() : super(HiveService.getWallet());
 
-  /// 상태 저장
+  /// 상태 저장 및 UI 갱신
   Future<void> _save() async {
     await HiveService.saveWallet(state);
-    state = HiveService.getWallet();
+    // StateNotifier가 변경을 감지하도록 새 인스턴스 생성
+    state = _cloneState(state);
+  }
+  
+  /// 상태 복제 (Hive 캐시 우회를 위해)
+  UserWallet _cloneState(UserWallet source) {
+    return UserWallet(
+      coins: source.coins,
+      totalEarned: source.totalEarned,
+      totalSpent: source.totalSpent,
+      lastDailyRewardDate: source.lastDailyRewardDate,
+      transactions: List.from(source.transactions),
+    );
   }
 
   /// 코인 획득
@@ -122,7 +153,10 @@ class InventoryNotifier extends StateNotifier<UserInventory> {
 
   Future<void> _save() async {
     await HiveService.saveInventory(state);
-    state = HiveService.getInventory();
+    // StateNotifier가 변경을 감지하도록 새 인스턴스 생성
+    state = UserInventory(
+      items: List.from(state.items),
+    );
   }
 
   /// 아이템 추가
@@ -151,7 +185,11 @@ class GachaHistoryNotifier extends StateNotifier<GachaHistory> {
 
   Future<void> _save() async {
     await HiveService.saveGachaHistory(state);
-    state = HiveService.getGachaHistory();
+    // StateNotifier가 변경을 감지하도록 새 인스턴스 생성
+    state = GachaHistory(
+      results: List.from(state.results),
+      pityCounter: state.pityCounter,
+    );
   }
 
   /// 가챠 결과 추가
@@ -171,7 +209,12 @@ class AchievementNotifier extends StateNotifier<UserAchievementData> {
 
   Future<void> _save() async {
     await HiveService.saveAchievementData(state);
-    state = HiveService.getAchievementData();
+    // StateNotifier가 변경을 감지하도록 새 인스턴스 생성
+    state = UserAchievementData(
+      achievements: List.from(state.achievements),
+      earnedBadges: List.from(state.earnedBadges),
+      displayBadgeId: state.displayBadgeId,
+    );
   }
 
   /// 업적 진행 업데이트
@@ -220,24 +263,29 @@ class UserSettingsNotifier extends StateNotifier<UserSettings> {
   UserSettingsNotifier() : super(HiveService.getSettings());
 
   Future<void> _save(UserSettings newSettings) async {
-    await HiveService.saveSettings(newSettings);
+    // 먼저 상태 업데이트 (UI 즉시 반영)
     state = newSettings;
+    // 그 다음 저장
+    await HiveService.saveSettings(newSettings);
   }
 
   /// 음식 서브카테고리 변경
   Future<void> setFoodSubCategory(FoodSubCategory category) async {
+    if (state.foodSubCategory == category) return; // 같은 값이면 무시
     final newSettings = state.copyWith(foodSubCategory: category);
     await _save(newSettings);
   }
 
   /// 운동 서브카테고리 변경
   Future<void> setExerciseSubCategory(ExerciseSubCategory category) async {
+    if (state.exerciseSubCategory == category) return; // 같은 값이면 무시
     final newSettings = state.copyWith(exerciseSubCategory: category);
     await _save(newSettings);
   }
 
   /// 영단어 레벨 변경
   Future<void> setVocabularyLevel(VocabularyLevel level) async {
+    if (state.vocabularyLevel == level) return; // 같은 값이면 무시
     final newSettings = state.copyWith(vocabularyLevel: level);
     await _save(newSettings);
   }

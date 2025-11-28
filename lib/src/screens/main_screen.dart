@@ -110,13 +110,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   /// 위젯 데이터 동기화
   Future<void> _syncWidget() async {
+    final petState = ref.read(petStateProvider);
     FetchPetWidgetState widgetState;
     String message;
     
     if (_currentResult != null) {
       widgetState = FetchPetWidgetState.result;
       message = _composeResultMessage();
-    } else if (_pet.state == PetState.sulky) {
+    } else if (petState.isSulky) {
       widgetState = FetchPetWidgetState.sulky;
       message = AppStrings.widgetSulky;
     } else {
@@ -129,8 +130,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       message: message,
       result: _currentResult,
       petState: _pet.state.id,
-      streak: _pet.streakCount,
-      level: _pet.level,
+      streak: petState.streakCount,
+      level: petState.level,
     );
   }
 
@@ -388,13 +389,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             children: [
               Icon(
                 Icons.local_fire_department,
-                color: _pet.streakCount > 0 ? AppColors.streakFire : Colors.grey,
+                color: hivePetState.streakCount > 0 ? AppColors.streakFire : Colors.grey,
               ),
               const SizedBox(width: 4),
               Text(
-                '${_pet.streakCount}일',
+                '${hivePetState.streakCount}일',
                 style: TextStyle(
-                  color: _pet.streakCount > 0 ? AppColors.streakFire : Colors.grey,
+                  color: hivePetState.streakCount > 0 ? AppColors.streakFire : Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
               ),

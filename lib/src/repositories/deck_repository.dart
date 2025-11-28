@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/storage_keys.dart';
 import '../models/deck_model.dart';
+import '../models/hive/user_settings.dart';
 import '../services/hive_service.dart';
 import 'i_deck_repository.dart';
 
@@ -121,7 +122,7 @@ class DeckRepository implements IDeckRepository {
 
   /// 설정 변경 시 덱 재로드
   @override
-  Future<void> reloadDecksWithSettings() async {
+  Future<void> reloadDecksWithSettings([UserSettings? settings]) async {
     // 초기화가 안 되어 있으면 initialize만 호출
     if (!_isInitialized) {
       await initialize();
@@ -138,21 +139,36 @@ class DeckRepository implements IDeckRepository {
     await _prefs.remove(StorageKeys.deckExercise);
     await _prefs.remove(StorageKeys.deckVocabulary);
     
-    await initialize();
+    // 설정이 전달되면 해당 설정으로 덱 로드
+    await _initializeWithSettings(settings);
+  }
+
+  /// 설정을 기반으로 초기화
+  Future<void> _initializeWithSettings(UserSettings? settings) async {
+    if (_isInitialized) return;
+
+    _prefs = await SharedPreferences.getInstance();
+    
+    // 모든 카테고리 덱 로드
+    for (final category in DeckCategory.values) {
+      await _loadOrCreateDeck(category, settings);
+    }
+
+    _isInitialized = true;
   }
 
   /// JSON 파일에서 원본 데이터 로드 (설정 반영)
-  Future<List<String>> _loadOriginalData(DeckCategory category) async {
+  Future<List<String>> _loadOriginalData(DeckCategory category, [UserSettings? settings]) async {
     try {
-      final settings = HiveService.getSettings();
+      final currentSettings = settings ?? HiveService.getSettings();
       final String jsonPath;
       
       switch (category) {
         case DeckCategory.food:
-          jsonPath = 'assets/data/food_${settings.foodSubCategory.id}.json';
+          jsonPath = 'assets/data/food_${currentSettings.foodSubCategory.id}.json';
           break;
         case DeckCategory.exercise:
-          jsonPath = 'assets/data/exercise_${settings.exerciseSubCategory.id}.json';
+          jsonPath = 'assets/data/exercise_${currentSettings.exerciseSubCategory.id}.json';
           break;
         case DeckCategory.vocabulary:
           // 영단어는 별도 처리
@@ -169,10 +185,10 @@ class DeckRepository implements IDeckRepository {
   }
 
   /// 영단어 데이터 로드
-  Future<void> _loadVocabularyData() async {
+  Future<void> _loadVocabularyData([UserSettings? settings]) async {
     try {
-      final settings = HiveService.getSettings();
-      final jsonPath = 'assets/data/vocabulary_${settings.vocabularyLevel.id}.json';
+      final currentSettings = settings ?? HiveService.getSettings();
+      final jsonPath = 'assets/data/vocabulary_${currentSettings.vocabularyLevel.id}.json';
       
       final jsonString = await rootBundle.loadString(jsonPath);
       final List<dynamic> jsonList = jsonDecode(jsonString);
@@ -181,14 +197,19 @@ class DeckRepository implements IDeckRepository {
           .map((e) => VocabularyItem.fromJson(e as Map<String, dynamic>))
           .toList();
       
-      // 저장된 덱 상태 복원 또는 새로 생성
-      final savedDeck = _prefs.getStringList(StorageKeys.deckVocabulary);
-      if (savedDeck != null && savedDeck.isNotEmpty) {
-        _currentVocabularyDeck = savedDeck
-            .map((e) => VocabularyItem.fromJson(jsonDecode(e)))
-            .toList();
-      } else {
+      // 설정이 전달된 경우 (설정 변경 시) 항상 새로 섞기
+      if (settings != null) {
         _refillVocabularyDeck();
+      } else {
+        // 저장된 덱 상태 복원 또는 새로 생성
+        final savedDeck = _prefs.getStringList(StorageKeys.deckVocabulary);
+        if (savedDeck != null && savedDeck.isNotEmpty) {
+          _currentVocabularyDeck = savedDeck
+              .map((e) => VocabularyItem.fromJson(jsonDecode(e)))
+              .toList();
+        } else {
+          _refillVocabularyDeck();
+        }
       }
     } catch (e) {
       // 기본 영단어 데이터
@@ -224,32 +245,41 @@ class DeckRepository implements IDeckRepository {
   }
 
   /// 덱 로드 또는 생성
-  Future<void> _loadOrCreateDeck(DeckCategory category) async {
+  Future<void> _loadOrCreateDeck(DeckCategory category, [UserSettings? settings]) async {
     if (category == DeckCategory.vocabulary) {
-      await _loadVocabularyData();
+      await _loadVocabularyData(settings);
       return;
     }
 
     final key = _getStorageKey(category);
-    final savedItems = _prefs.getString(key);
+    
+    // 설정이 전달된 경우 (설정 변경 시) 항상 새로 로드
+    final originalData = await _loadOriginalData(category, settings);
 
-    final originalData = await _loadOriginalData(category);
-
-    if (savedItems != null) {
-      // 저장된 덱 복원
-      final items = Deck.itemsFromJsonString(savedItems);
-      _decks[category] = Deck(
-        category: category.id,
-        originalItems: originalData,
-        initialItems: items,
-      );
-    } else {
-      // 새 덱 생성
+    if (settings != null) {
+      // 설정 변경 시 항상 새 덱 생성
       _decks[category] = Deck(
         category: category.id,
         originalItems: originalData,
       );
       await _saveDeck(category);
+    } else {
+      // 일반 초기화 시 저장된 상태 복원 시도
+      final savedItems = _prefs.getString(key);
+      if (savedItems != null) {
+        final items = Deck.itemsFromJsonString(savedItems);
+        _decks[category] = Deck(
+          category: category.id,
+          originalItems: originalData,
+          initialItems: items,
+        );
+      } else {
+        _decks[category] = Deck(
+          category: category.id,
+          originalItems: originalData,
+        );
+        await _saveDeck(category);
+      }
     }
   }
 

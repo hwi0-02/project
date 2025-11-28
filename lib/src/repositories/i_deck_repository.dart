@@ -1,4 +1,5 @@
 import '../models/deck_model.dart';
+import '../models/hive/user_settings.dart';
 
 /// 덱 데이터 리포지토리 인터페이스
 /// 
@@ -24,5 +25,5 @@ abstract class IDeckRepository {
   Future<void> resetAllDecks();
 
   /// 설정 변경 시 덱 재로드
-  Future<void> reloadDecksWithSettings();
+  Future<void> reloadDecksWithSettings([UserSettings? settings]);
 }
