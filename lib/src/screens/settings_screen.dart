@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/constants.dart';
 import '../providers/providers.dart';
 import '../models/hive/hive_models.dart';
+import 'widget_guide_screen.dart';
+import 'app_info_screen.dart';
 
 /// 설정 화면
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -201,7 +204,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             icon: Icons.widgets_outlined,
             title: AppStrings.settingsWidgetGuide,
             onTap: () {
-              // TODO: 위젯 설치 가이드 화면으로 이동
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WidgetGuideScreen(),
+                ),
+              );
             },
           ),
           
@@ -212,17 +220,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           
           const Divider(),
           
+          // 앱 정보
+          _buildSettingsTile(
+            icon: Icons.info_outline,
+            title: '앱 정보',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AppInfoScreen(),
+                ),
+              );
+            },
+          ),
+          
+          const Divider(),
+          
           // 개인정보처리방침
           _buildSettingsTile(
             icon: Icons.privacy_tip_outlined,
             title: AppStrings.settingsPrivacy,
-            onTap: () {
-              // TODO: 개인정보처리방침 URL 열기
-            },
+            onTap: () => _openPrivacyPolicy(),
           ),
         ],
       ),
     );
+  }
+  
+  Future<void> _openPrivacyPolicy() async {
+    // 개인정보처리방침 URL (실제 배포 시 업데이트 필요)
+    const privacyUrl = 'https://example.com/privacy';
+    final uri = Uri.parse(privacyUrl);
+    final canLaunch = await canLaunchUrl(uri);
+    if (!mounted) return;
+    
+    if (canLaunch) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('링크를 열 수 없습니다.')),
+      );
+    }
   }
 
   Widget _buildSectionHeader(String title) {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/ad_service.dart';
+import '../constants/constants.dart';
 
 /// 배너 광고 위젯
+/// 
+/// 프리미엄 사용자는 광고가 표시되지 않음
+/// 광고 로딩 중에는 깔끔한 플레이스홀더 표시
 class BannerAdWidget extends StatefulWidget {
   final AdService adService;
   final bool isPremium;
@@ -41,23 +45,55 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
     final bannerAd = widget.adService.bannerAd;
     if (bannerAd == null || !widget.adService.isBannerAdLoaded) {
-      // 광고 로딩 중 플레이스홀더
+      // 광고 로딩 중 플레이스홀더 - 새 디자인 시스템 적용
       return Container(
         height: 50,
-        color: Colors.grey[200],
-        child: const Center(
-          child: Text(
-            'Ad',
-            style: TextStyle(color: Colors.grey),
+        margin: EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
+        decoration: BoxDecoration(
+          color: AppTheme.neutral100,
+          borderRadius: BorderRadius.circular(AppTheme.radiusS),
+          border: Border.all(color: AppTheme.neutral200),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.neutral400),
+                ),
+              ),
+              SizedBox(width: AppTheme.spacing8),
+              Text(
+                '광고 로딩 중...',
+                style: TextStyle(
+                  color: AppTheme.neutral500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    return SizedBox(
-      width: bannerAd.size.width.toDouble(),
-      height: bannerAd.size.height.toDouble(),
-      child: AdWidget(ad: bannerAd),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+        child: SizedBox(
+          width: bannerAd.size.width.toDouble(),
+          height: bannerAd.size.height.toDouble(),
+          child: AdWidget(ad: bannerAd),
+        ),
+      ),
     );
   }
 }

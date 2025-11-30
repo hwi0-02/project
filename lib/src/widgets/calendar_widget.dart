@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/constants.dart';
 import '../utils/date_utils.dart';
 
-/// 캘린더 위젯
-/// 
-/// 한 달 간의 미션 완료 현황을 표시하는 캘린더
+/// 캘린더 위젯 - 미니멀 프리미엄 디자인
 class CalendarWidget extends StatefulWidget {
   final List<DateTime> completedDates;
   final DateTime? selectedDate;
@@ -49,45 +47,50 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.spacing20),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+        boxShadow: AppTheme.shadowMd,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.spacing16),
           _buildWeekdayHeader(),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppTheme.spacing8),
           _buildCalendarGrid(),
+          const SizedBox(height: AppTheme.spacing16),
+          _buildLegend(),
         ],
       ),
     );
   }
 
   Widget _buildHeader() {
+    final canGoForward = _currentMonth.isBefore(
+      DateTime(DateTime.now().year, DateTime.now().month),
+    );
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          icon: const Icon(Icons.chevron_left),
+        _NavButton(
+          icon: Icons.chevron_left_rounded,
           onPressed: _previousMonth,
-          color: AppColors.textPrimary,
         ),
         Text(
           '${_currentMonth.year}년 ${AppDateUtils.getMonthName(_currentMonth.month)}',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.textStyles.title.copyWith(
+            color: AppTheme.neutral800,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.chevron_right),
-          onPressed: _nextMonth,
-          color: AppColors.textPrimary,
+        _NavButton(
+          icon: Icons.chevron_right_rounded,
+          onPressed: canGoForward ? null : _nextMonth,
+          enabled: !canGoForward,
         ),
       ],
     );
@@ -97,17 +100,16 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: weekdays.map((day) {
-        final isWeekend = day == '일' || day == '토';
+      children: weekdays.asMap().entries.map((entry) {
+        final isWeekend = entry.key == 0 || entry.key == 6;
         return SizedBox(
           width: 36,
           child: Center(
             child: Text(
-              day,
-              style: TextStyle(
-                color: isWeekend ? AppColors.textSecondary : AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
+              entry.value,
+              style: AppTheme.textStyles.caption.copyWith(
+                color: isWeekend ? AppTheme.neutral400 : AppTheme.neutral500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -119,10 +121,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   Widget _buildCalendarGrid() {
     final firstDayOfMonth = AppDateUtils.getMonthStart(_currentMonth);
     final daysInMonth = AppDateUtils.getDaysInMonth(_currentMonth);
-    
-    // 일요일 = 0, 월요일 = 1, ... 토요일 = 6 (우리 캘린더는 일요일 시작)
     final startWeekday = firstDayOfMonth.weekday % 7;
-    
     final totalCells = (startWeekday + daysInMonth + 6) ~/ 7 * 7;
     
     return GridView.builder(
@@ -143,63 +142,173 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         }
         
         final date = DateTime(_currentMonth.year, _currentMonth.month, dayNumber);
-        final isToday = AppDateUtils.isToday(date);
-        final isCompleted = _isCompleted(date);
-        final isFuture = date.isAfter(DateTime.now());
-        
-        return _buildDayCell(
+        return _DayCell(
           dayNumber: dayNumber,
-          isToday: isToday,
-          isCompleted: isCompleted,
-          isFuture: isFuture,
-          date: date,
+          isToday: AppDateUtils.isToday(date),
+          isCompleted: _isCompleted(date),
+          isFuture: date.isAfter(DateTime.now()),
+          isSelected: widget.selectedDate != null && 
+                      AppDateUtils.isSameDay(date, widget.selectedDate!),
+          onTap: date.isAfter(DateTime.now()) 
+              ? null 
+              : () => widget.onDateSelected?.call(date),
         );
       },
     );
   }
 
-  Widget _buildDayCell({
-    required int dayNumber,
-    required bool isToday,
-    required bool isCompleted,
-    required bool isFuture,
-    required DateTime date,
-  }) {
+  Widget _buildLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _LegendItem(
+          color: AppTheme.success,
+          label: '완료',
+        ),
+        const SizedBox(width: AppTheme.spacing16),
+        _LegendItem(
+          color: AppTheme.primary,
+          label: '오늘',
+          isOutlined: true,
+        ),
+      ],
+    );
+  }
+}
+
+/// 네비게이션 버튼
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool enabled;
+  
+  const _NavButton({
+    required this.icon,
+    this.onPressed,
+    this.enabled = true,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(AppTheme.radiusS),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: enabled ? AppTheme.neutral100 : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppTheme.radiusS),
+          ),
+          child: Icon(
+            icon,
+            color: enabled ? AppTheme.neutral700 : AppTheme.neutral300,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 날짜 셀
+class _DayCell extends StatelessWidget {
+  final int dayNumber;
+  final bool isToday;
+  final bool isCompleted;
+  final bool isFuture;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  
+  const _DayCell({
+    required this.dayNumber,
+    required this.isToday,
+    required this.isCompleted,
+    required this.isFuture,
+    required this.isSelected,
+    this.onTap,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
     Color backgroundColor;
     Color textColor;
+    Border? border;
     
     if (isCompleted) {
-      backgroundColor = AppColors.success;
+      backgroundColor = AppTheme.success;
       textColor = Colors.white;
     } else if (isToday) {
-      backgroundColor = AppColors.primary.withValues(alpha: 0.2);
-      textColor = AppColors.primary;
+      backgroundColor = AppTheme.primary.withValues(alpha: 0.1);
+      textColor = AppTheme.primary;
+      border = Border.all(color: AppTheme.primary, width: 2);
+    } else if (isSelected) {
+      backgroundColor = AppTheme.primary.withValues(alpha: 0.15);
+      textColor = AppTheme.primary;
     } else {
       backgroundColor = Colors.transparent;
-      textColor = isFuture ? AppColors.textSecondary : AppColors.textPrimary;
+      textColor = isFuture ? AppTheme.neutral300 : AppTheme.neutral700;
     }
     
     return GestureDetector(
-      onTap: isFuture ? null : () => widget.onDateSelected?.call(date),
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
           shape: BoxShape.circle,
-          border: isToday && !isCompleted
-              ? Border.all(color: AppColors.primary, width: 2)
-              : null,
+          border: border,
         ),
         child: Center(
           child: Text(
             '$dayNumber',
-            style: TextStyle(
+            style: AppTheme.textStyles.body.copyWith(
               color: textColor,
-              fontWeight: isToday || isCompleted ? FontWeight.bold : FontWeight.normal,
-              fontSize: 14,
+              fontWeight: isToday || isCompleted ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 13,
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 범례 아이템
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool isOutlined;
+  
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    this.isOutlined = false,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: isOutlined ? Colors.transparent : color,
+            shape: BoxShape.circle,
+            border: isOutlined ? Border.all(color: color, width: 2) : null,
+          ),
+        ),
+        const SizedBox(width: AppTheme.spacing6),
+        Text(
+          label,
+          style: AppTheme.textStyles.caption.copyWith(
+            color: AppTheme.neutral500,
+          ),
+        ),
+      ],
     );
   }
 }

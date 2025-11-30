@@ -5,3 +5,6 @@ export 'calendar_widget.dart';
 export 'streak_indicator.dart';
 export 'status_widgets.dart';
 export 'rive_pet_widget.dart';
+export 'dialogs.dart';
+export 'celebration_widget.dart';
+export 'app_components.dart';

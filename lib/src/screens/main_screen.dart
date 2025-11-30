@@ -513,7 +513,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           child: Text(
             message,
             style: TextStyle(
-              fontSize: _currentResult != null && !_isLoading ? 24 : 18,
+              fontSize: _currentResult != null && !_isLoading ? 24.0 : 18.0,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),

@@ -101,10 +101,72 @@ class _FetchPetAppState extends ConsumerState<FetchPetApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
+          seedColor: AppTheme.primary,
           brightness: Brightness.light,
+          surface: AppTheme.surface,
         ),
+        scaffoldBackgroundColor: AppTheme.background,
         useMaterial3: true,
+        // AppBar 테마
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: AppTheme.neutral800),
+          titleTextStyle: TextStyle(
+            color: AppTheme.neutral900,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        // 버튼 테마
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacing24,
+              vertical: AppTheme.spacing12,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+            ),
+          ),
+        ),
+        // TextButton 테마
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: AppTheme.primary,
+          ),
+        ),
+        // Dialog 테마
+        dialogTheme: DialogThemeData(
+          backgroundColor: AppTheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusL),
+          ),
+          titleTextStyle: TextStyle(
+            color: AppTheme.neutral900,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        // SnackBar 테마
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppTheme.neutral800,
+          contentTextStyle: TextStyle(color: Colors.white),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusM),
+          ),
+        ),
+        // Divider 테마
+        dividerTheme: DividerThemeData(
+          color: AppTheme.neutral200,
+          thickness: 1,
+        ),
       ),
       initialRoute: widget.isOnboardingComplete ? '/main' : '/onboarding',
       routes: {

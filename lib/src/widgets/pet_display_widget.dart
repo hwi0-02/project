@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import '../constants/constants.dart';
 import '../models/models.dart';
 
-/// 펫 표시 위젯
-/// 
-/// 펫 이미지와 아이템을 Stack으로 레이어링하여 표시
-/// 애니메이션으로 생동감 있는 펫 표현
+/// 펫 표시 위젯 - 프리미엄 애니메이션 버전
 class PetDisplayWidget extends StatefulWidget {
   final Pet pet;
   final double size;
   final bool enableAnimation;
+  final bool showShadow;
 
   const PetDisplayWidget({
     super.key,
     required this.pet,
     this.size = 200,
     this.enableAnimation = true,
+    this.showShadow = true,
   });
 
   @override
@@ -27,10 +26,12 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
   late AnimationController _bounceController;
   late AnimationController _rotateController;
   late AnimationController _rainbowController;
+  late AnimationController _pulseController;
   
   late Animation<double> _bounceAnimation;
   late Animation<double> _rotateAnimation;
   late Animation<double> _rainbowAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -40,30 +41,39 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
   }
 
   void _initAnimations() {
-    // 통통 튀는 애니메이션
+    // 부드러운 바운스 애니메이션
     _bounceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800),
     );
-    _bounceAnimation = Tween<double>(begin: 0, end: 10).animate(
+    _bounceAnimation = Tween<double>(begin: 0, end: 8).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
     
-    // 살짝 흔들리는 애니메이션
+    // 미세한 회전 애니메이션
     _rotateController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2500),
     );
-    _rotateAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
+    _rotateAnimation = Tween<double>(begin: -0.03, end: 0.03).animate(
       CurvedAnimation(parent: _rotateController, curve: Curves.easeInOut),
     );
     
     // 무지개 오라 애니메이션
     _rainbowController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
     );
     _rainbowAnimation = Tween<double>(begin: 0, end: 1).animate(_rainbowController);
+    
+    // 펄스 애니메이션 (행복할 때)
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   void _startAnimations() {
@@ -75,17 +85,30 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
     if (widget.pet.hasRainbowAura) {
       _rainbowController.repeat();
     }
+    
+    if (widget.pet.state == PetState.completed) {
+      _pulseController.repeat(reverse: true);
+    }
   }
 
   @override
   void didUpdateWidget(PetDisplayWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
+    // 무지개 오라 상태 변경
     if (widget.pet.hasRainbowAura && !oldWidget.pet.hasRainbowAura) {
       _rainbowController.repeat();
     } else if (!widget.pet.hasRainbowAura && oldWidget.pet.hasRainbowAura) {
       _rainbowController.stop();
       _rainbowController.reset();
+    }
+    
+    // 완료 상태 변경
+    if (widget.pet.state == PetState.completed && oldWidget.pet.state != PetState.completed) {
+      _pulseController.repeat(reverse: true);
+    } else if (widget.pet.state != PetState.completed) {
+      _pulseController.stop();
+      _pulseController.reset();
     }
   }
 
@@ -94,6 +117,7 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
     _bounceController.dispose();
     _rotateController.dispose();
     _rainbowController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -103,28 +127,76 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
       width: widget.size,
       height: widget.size,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_bounceAnimation, _rotateAnimation]),
+        animation: Listenable.merge([
+          _bounceAnimation, 
+          _rotateAnimation,
+          _pulseAnimation,
+        ]),
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, -_bounceAnimation.value),
             child: Transform.rotate(
               angle: _rotateAnimation.value,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // 무지개 오라 (가장 뒤)
-                  if (widget.pet.hasRainbowAura) _buildRainbowAura(),
-                  
-                  // 펫 이미지
-                  _buildPetImage(),
-                  
-                  // 아이템 레이어들
-                  ..._buildItemLayers(),
-                ],
+              child: Transform.scale(
+                scale: widget.pet.state == PetState.completed 
+                    ? _pulseAnimation.value 
+                    : 1.0,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // 그림자
+                    if (widget.showShadow) _buildShadow(),
+                    
+                    // 무지개 오라 (가장 뒤)
+                    if (widget.pet.hasRainbowAura) _buildRainbowAura(),
+                    
+                    // 상태 글로우
+                    _buildStateGlow(),
+                    
+                    // 펫 이미지
+                    _buildPetImage(),
+                    
+                    // 아이템 레이어들
+                    ..._buildItemLayers(),
+                  ],
+                ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildShadow() {
+    return Positioned(
+      bottom: widget.size * 0.05,
+      child: Container(
+        width: widget.size * 0.5,
+        height: widget.size * 0.08,
+        decoration: BoxDecoration(
+          color: AppTheme.neutral900.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(widget.size * 0.04),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStateGlow() {
+    final petColor = _getPetColor();
+    
+    return Container(
+      width: widget.size * 0.85,
+      height: widget.size * 0.85,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: petColor.withValues(alpha: 0.2),
+            blurRadius: 30,
+            spreadRadius: 5,
+          ),
+        ],
       ),
     );
   }
@@ -136,8 +208,8 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
         return Transform.rotate(
           angle: _rainbowAnimation.value * 2 * 3.14159,
           child: Container(
-            width: widget.size * 1.3,
-            height: widget.size * 1.3,
+            width: widget.size * 1.2,
+            height: widget.size * 1.2,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: SweepGradient(
@@ -154,11 +226,11 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
             ),
             child: Center(
               child: Container(
-                width: widget.size * 1.1,
-                height: widget.size * 1.1,
-                decoration: const BoxDecoration(
+                width: widget.size * 1.0,
+                height: widget.size * 1.0,
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.background,
+                  color: AppTheme.background,
                 ),
               ),
             ),
@@ -169,28 +241,31 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
   }
 
   Widget _buildPetImage() {
-    // TODO: 실제 펫 이미지 에셋으로 교체
     final petColor = _getPetColor();
     final expression = _getPetExpression();
     
     return Container(
-      width: widget.size * 0.8,
-      height: widget.size * 0.8,
+      width: widget.size * 0.75,
+      height: widget.size * 0.75,
       decoration: BoxDecoration(
         color: petColor,
         shape: BoxShape.circle,
+        border: Border.all(
+          color: petColor.withValues(alpha: 0.3),
+          width: 3,
+        ),
         boxShadow: [
           BoxShadow(
-            color: petColor.withValues(alpha: 0.3),
-            blurRadius: 20,
-            spreadRadius: 5,
+            color: petColor.withValues(alpha: 0.25),
+            blurRadius: 15,
+            spreadRadius: 2,
           ),
         ],
       ),
       child: Center(
         child: Text(
           expression,
-          style: TextStyle(fontSize: widget.size * 0.4),
+          style: TextStyle(fontSize: widget.size * 0.35),
         ),
       ),
     );
@@ -202,6 +277,8 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
         return AppColors.petHappy;
       case PetState.sulky:
         return AppColors.petSulky;
+      case PetState.loading:
+        return AppTheme.primary.withValues(alpha: 0.8);
       default:
         return AppColors.petDefault;
     }
@@ -233,25 +310,91 @@ class _PetDisplayWidgetState extends State<PetDisplayWidget>
   }
 
   Widget _buildItemWidget(PetItem item) {
-    // TODO: 실제 아이템 이미지 에셋으로 교체
     switch (item) {
       case PetItem.scarf:
         return Positioned(
-          bottom: widget.size * 0.15,
-          child: Text('🧣', style: TextStyle(fontSize: widget.size * 0.2)),
+          bottom: widget.size * 0.18,
+          child: Text('🧣', style: TextStyle(fontSize: widget.size * 0.18)),
         );
       case PetItem.glasses:
         return Positioned(
-          top: widget.size * 0.25,
-          child: Text('🤓', style: TextStyle(fontSize: widget.size * 0.15)),
+          top: widget.size * 0.28,
+          child: Text('🤓', style: TextStyle(fontSize: widget.size * 0.14)),
         );
       case PetItem.crown:
         return Positioned(
-          top: widget.size * 0.05,
-          child: Text('👑', style: TextStyle(fontSize: widget.size * 0.2)),
+          top: widget.size * 0.08,
+          child: Text('👑', style: TextStyle(fontSize: widget.size * 0.18)),
         );
       case PetItem.rainbowAura:
-        return const SizedBox.shrink(); // 이미 _buildRainbowAura에서 처리
+        return const SizedBox.shrink();
+    }
+  }
+}
+
+/// 미니 펫 아바타 (리스트 등에서 사용)
+class MiniPetAvatar extends StatelessWidget {
+  final Pet pet;
+  final double size;
+  
+  const MiniPetAvatar({
+    super.key,
+    required this.pet,
+    this.size = 48,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    final petColor = _getPetColor();
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: petColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: petColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: petColor.withValues(alpha: 0.2),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          _getPetExpression(),
+          style: TextStyle(fontSize: size * 0.5),
+        ),
+      ),
+    );
+  }
+  
+  Color _getPetColor() {
+    switch (pet.state) {
+      case PetState.completed:
+        return AppColors.petHappy;
+      case PetState.sulky:
+        return AppColors.petSulky;
+      default:
+        return AppColors.petDefault;
+    }
+  }
+  
+  String _getPetExpression() {
+    switch (pet.state) {
+      case PetState.waiting:
+        return '🐕';
+      case PetState.completed:
+        return '😊';
+      case PetState.sulky:
+        return '😢';
+      default:
+        return '🐕';
     }
   }
 }
